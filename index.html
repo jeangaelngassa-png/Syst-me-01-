@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090912"><title>SYSTÈME 01</title>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#090912;--c1:#14142a;--c2:#1e1b3f;--ln:#2c2a55;--tx:#eceaff;--mu:#9594bd;--v:#8b5cf6;--ok:#34d399;--ko:#f87171;--g:linear-gradient(135deg,#8b5cf6,#3b82f6)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(120% 50% at 50% -10%,#2a1a5e66,transparent),var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:640px;margin:auto;padding:16px 14px 96px;min-height:100vh}
+h1{font-size:22px}h2{font-size:12px;margin:18px 0 8px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em}
+p{margin:4px 0}.mu{color:var(--mu);font-size:13px}.pos{color:var(--ok)}.neg{color:var(--ko)}.big{font-size:19px;font-weight:700}
+.card{background:linear-gradient(160deg,var(--c2),var(--c1));border:1px solid var(--ln);border-radius:18px;padding:14px;margin-bottom:10px}
+.hero{background:var(--g);border:0}.hero p,.hero .mu{color:#ffffffd0}
+.row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.grid .card{margin:0}
+.bar{height:8px;background:#ffffff18;border-radius:9px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--g);border-radius:9px}.bar.r i{background:var(--ko)}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+.btn{background:var(--g);border:0;border-radius:12px;padding:10px 14px;font-weight:600}
+.ghost{background:#ffffff14;border:0;border-radius:10px;padding:7px 11px}
+.chip{font-size:11px;background:#ffffff14;border-radius:8px;padding:2px 8px;color:var(--mu);white-space:nowrap}
+label{display:block;margin-top:10px}
+input,select,textarea{width:100%;background:#0b0b1a;border:1px solid var(--ln);border-radius:10px;padding:10px;margin-top:4px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#0d0d1cf2;border-top:1px solid var(--ln);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(10px);z-index:5}
+nav button{flex:1;background:0;border:0;font-size:10px;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav b{font-size:19px;font-weight:400;filter:grayscale(1) opacity(.7)}nav .on{color:#fff}nav .on b{filter:drop-shadow(0 0 6px var(--v))}
+.chk{width:24px;height:24px;border-radius:8px;border:2px solid var(--v);background:0;flex:none;padding:0}.chk.on{background:var(--g);border-color:transparent}
+.done{text-decoration:line-through;opacity:.5}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0}.tabs button{white-space:nowrap}.tabs .on{background:var(--g)}
+#m{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;justify-content:center;z-index:9}#m.s{display:flex}
+#m>div{background:var(--c1);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:88%;overflow:auto}
+#t{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--c2);border:1px solid var(--v);border-radius:12px;padding:8px 14px;opacity:0;pointer-events:none;transition:.2s;z-index:99;font-size:13px}#t.s{opacity:1}
+</style></head><body>
+<main id="v"></main><nav id="nav"></nav><div id="m"><div></div></div><div id="t"></div>
+<script>
+const $=s=>document.querySelector(s),K='systeme01',D=()=>({tasks:[],routine:[],log:{},projects:[],goals:[],books:[],acc:[],tx:[],bud:[],debts:[],notes:[],rem:[],fired:{},name:'',ac:'Violet'});
+let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(x){}
+S=Object.assign(D(),S);
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}nsave()},
+id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+iso=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10),
+today=()=>iso(new Date()),
+e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),
+f=n=>Math.round(n).toLocaleString('fr-FR')+' XAF',
+pc=(a,b)=>b>0?Math.max(0,Math.min(100,Math.round(a/b*100))):0,
+bar=(p,r)=>`<div class="bar${r?' r':''}"><i style="width:${p}%"></i></div>`,
+g=(a,i)=>a.find(x=>x.id==i),
+sm=(a,ty)=>a.filter(t=>t.ty==ty).reduce((s,t)=>s+t.a,0),
+fd=d=>d?new Date(d+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'',
+fi=(k,l,v,t)=>({k,l,v,t}),sl=(k,l,o,v)=>({k,l,t:'sel',o,v}),
+toast=(m,d=2400)=>{const t=$('#t');t.textContent=m;t.className='s';setTimeout(()=>t.className='',d)},
+close=()=>{$('#m').className='';save();go()};
+let tab='home',sub={};
+function form(t,fs,ok,del){
+ const h=x=>x.t=='area'?`<textarea name="${x.k}" rows="4">${e(x.v)}</textarea>`:x.t=='sel'?`<select name="${x.k}">${x.o.map(o=>{const[v,l]=Array.isArray(o)?o:[o,o];return`<option value="${e(v)}"${v==x.v?' selected':''}>${e(l)}</option>`}).join('')}</select>`:`<input name="${x.k}" type="${x.t||'text'}" value="${e(x.v)}"${x.t=='number'?' step="any" inputmode="decimal"':''}>`;
+ $('#m>div').innerHTML=`<h2 style="margin-top:0">${t}</h2>${fs.map(x=>`<label class="mu">${x.l}${h(x)}</label>`).join('')}<div class="row" style="margin-top:16px"><button class="ghost" id="x">Annuler</button>${del?'<button class="ghost neg" id="d">Supprimer</button>':''}<button class="btn" id="o">Valider</button></div>`;
+ $('#m').className='s';
+ $('#x').onclick=()=>$('#m').className='';
+ if(del)$('#d').onclick=()=>{del();close()};
+ $('#o').onclick=()=>{const r={};$('#m').querySelectorAll('[name]').forEach(i=>r[i.name]=i.type=='number'?(+i.value||0):i.value.trim());
+  if(fs[0]&&!fs[0].t&&!r[fs[0].k])return toast('Ce champ est requis');ok(r);close()};
+}
+$('#m').onclick=ev=>{if(ev.target.id=='m')$('#m').className=''};
+const ed=(a,o,t,fs,d,po)=>{const pv=o&&{...o};form((o?'Modifier : ':'Ajouter : ')+t,fs.map(x=>({...x,v:o?o[x.k]:x.v})),r=>{if(o)Object.assign(o,r);else a.push(o={id:id(),...d,...r});po&&po(o,pv)},o&&(()=>a.splice(a.indexOf(o),1)))},
+tabs=(k,l)=>`<div class="tabs">${l.map(([v,n])=>`<button class="ghost${(sub[k]||l[0][0])==v?' on':''}" data-a="st" data-i="${k}" data-j="${v}">${n}</button>`).join('')}</div>`;
+
+/* Quotidien */
+const st=r=>{let n=0;for(let i=0;i<400;i++){if((S.log[iso(new Date(Date.now()-i*864e5))]||[]).includes(r.id))n++;else if(i)break}return n},
+tkRow=t=>`<div class="card row"><button class="chk${t.ok?' on':''}" data-a="tk" data-i="${t.id}"></button><div style="flex:1" data-a="etk" data-i="${t.id}"><span class="${t.ok?'done':''}">${e(t.t)}</span><div class="mu">${t.h?t.h+' · ':''}${t.d<today()&&!t.ok?'en retard · ':''}${fd(t.d)}</div></div></div>`,
+rtRow=r=>{const on=(S.log[today()]||[]).includes(r.id),s=st(r);return`<div class="card row"><button class="chk${on?' on':''}" data-a="rt" data-i="${r.id}"></button><div style="flex:1" data-a="er" data-i="${r.id}">${e(r.t)}</div><span class="mu">${s?'🔥 '+s+' j':''}</span></div>`},
+todo=()=>{const d=today();return S.tasks.filter(t=>t.d<=d&&(!t.ok||t.d==d)).sort((a,b)=>(a.h||'99').localeCompare(b.h||'99'))},
+dayP=()=>{const d=today(),a=todo(),l=S.log[d]||[],n=a.filter(t=>t.ok).length+S.routine.filter(r=>l.includes(r.id)).length,tot=a.length+S.routine.length;return{n,tot,p:pc(n,tot)}};
+
+/* Projets */
+const leaf=p=>p.items.filter(x=>!(x.k=='e'&&p.items.some(y=>y.par==x.id))&&(x.k!='s'||g(p.items,x.par))),
+pp=p=>{const l=leaf(p);return pc(l.filter(x=>x.ok).length,l.length)},
+spent=p=>p.exp.reduce((s,x)=>s+x.a,0),cur=()=>g(S.projects,sub.p),
+pf=[fi('n','Nom du projet'),fi('obj','Objectif'),{k:'desc',l:'Description',t:'area'},fi('s','Début',today(),'date'),fi('end','Échéance','','date'),sl('pr','Priorité',['Haute','Moyenne','Basse'],'Moyenne'),fi('bud','Budget prévisionnel (XAF)',0,'number'),{k:'res',l:'Ressources (une par ligne)',t:'area'},{k:'bil',l:'Bilan final',t:'area'}];
+const pd=p=>{const pr=pp(p),it=p.items,io=x=>{const d=x.dep&&g(it,x.dep);return`<div class="row" style="padding:6px 0"><button class="chk${x.ok?' on':''}" data-a="pi" data-i="${x.id}"></button><div style="flex:1" data-a="ei" data-i="${x.id}"><span class="${x.ok?'done':''}">${e(x.t)}</span>${d&&!d.ok?`<div class="mu">🔒 après « ${e(d.t)} »</div>`:''}</div></div>`};
+return`<button class="ghost" data-a="bk">← Projets</button><div class="row" style="margin-top:10px"><h1>${e(p.n)}</h1><button class="ghost" data-a="pe">Modifier</button></div>
+<div class="card hero" style="margin-top:10px"><div class="row"><b>${pr} %</b><span>Priorité ${p.pr.toLowerCase()}</span></div>${bar(pr)}${p.obj?`<p>${e(p.obj)}</p>`:''}<p class="mu">${fd(p.s)}${p.end?' → '+fd(p.end):''}</p></div>
+${p.desc?`<p class="mu">${e(p.desc)}</p>`:''}
+<h2>Étapes</h2>${it.filter(x=>x.k=='e').map(x=>`<div class="card">${io(x)}${it.filter(y=>y.par==x.id).map(y=>`<div style="margin-left:28px">${io(y)}</div>`).join('')}<button class="ghost" data-a="ai" data-i="s" data-j="${x.id}">+ sous-tâche</button></div>`).join('')}<button class="ghost" data-a="ai" data-i="e">+ Étape</button>
+<h2>Tâches libres</h2><div class="card">${it.filter(x=>x.k=='t').map(io).join('')}<button class="ghost" data-a="ai" data-i="t">+ Tâche</button></div>
+<h2>Budget</h2><div class="card"><div class="row"><span>Dépensé</span><b>${f(spent(p))} / ${f(p.bud)}</b></div>${bar(pc(spent(p),p.bud),spent(p)>p.bud)}${p.exp.map(x=>`<div class="row mu" style="padding:4px 0" data-a="px" data-i="${x.id}"><span>${e(x.n)}</span><span>${f(x.a)}</span></div>`).join('')}<button class="ghost" data-a="px">+ Dépense</button></div>
+${p.res?`<h2>Ressources</h2><div class="card">${e(p.res).replace(/\n/g,'<br>')}</div>`:''}
+<h2>Journal de bord</h2><div class="card">${p.jr.slice().reverse().map(x=>`<p class="mu">${fd(x.d)} — ${e(x.t)}</p>`).join('')}<button class="ghost" data-a="pj" style="margin-top:6px">+ Note</button></div>
+${p.bil?`<h2>Bilan final</h2><div class="card">${e(p.bil).replace(/\n/g,'<br>')}</div>`:''}`};
+
+/* Objectifs */
+const rd=b=>b.ses.reduce((s,x)=>s+x.n,0),
+gfs=[fi('t','Objectif'),fi('cat','Catégorie (ex. Santé, Carrière)'),sl('tm','Horizon',['Court terme','Moyen terme','Long terme']),fi('end','Échéance','','date'),fi('p','Progression (%)',0,'number')],
+bfs=[fi('t','Titre du livre'),fi('tot','Nombre total de pages',0,'number'),fi('per','Pages à lire par jour',0,'number'),fi('start','Date de début',today(),'date')],
+gc=x=>`<div class="card" data-a="eg" data-i="${x.id}"><div class="row"><b>${e(x.t)}</b>${x.cat?`<span class="chip">${e(x.cat)}</span>`:''}</div>${x.end?`<p class="mu">Échéance ${fd(x.end)}</p>`:''}${bar(x.p)}<div class="row mu"><span>${x.p} %</span><span>${x.hist.length?'Mis à jour '+fd(x.hist[x.hist.length-1].d):''}</span></div></div>`,
+bc=b=>{const r=rd(b),left=b.tot-r,dy=b.per>0?Math.ceil(left/b.per):0;return`<div class="card"><div class="row" data-a="eb" data-i="${b.id}"><b>${e(b.t)}</b><span class="mu">${pc(r,b.tot)} %</span></div>${bar(pc(r,b.tot))}<p class="mu">${r} / ${b.tot} pages${left>0&&b.per>0?` · fin estimée le ${fd(iso(new Date(Date.now()+dy*864e5)))} (${dy} j)`:left<=0&&b.tot?' · terminé 🎉':''}</p><button class="ghost" data-a="sb" data-i="${b.id}" style="margin:6px 0">+ Session de lecture</button>${b.ses.slice(-5).reverse().map(s=>`<div class="mu row" style="padding:3px 0" data-a="es" data-i="${b.id}" data-j="${s.id}"><span>${fd(s.d)}</span><span>${s.n} pages</span></div>`).join('')}</div>`};
+
+/* Finances */
+const CAT=['Alimentation','Transport','Logement','Santé','Éducation','Loisirs','Communication','Business','Salaire','Autre'],
+acs=()=>S.acc.map(a=>[a.id,a.n]),an=i=>(g(S.acc,i)||{n:'?'}).n,
+mo=()=>{const m=today().slice(0,7);return S.tx.filter(t=>t.d.startsWith(m))},
+bal=a=>a.init+S.tx.reduce((s,t)=>s+(t.ac==a.id?(t.ty=='in'?t.a:-t.a):0)+(t.ty=='tr'&&t.to==a.id?t.a:0),0),
+total=()=>S.acc.reduce((s,a)=>s+bal(a),0),
+cs=m=>{const o={};m.filter(t=>t.ty=='out').forEach(t=>o[t.c]=(o[t.c]||0)+t.a);return o},
+txfs=()=>[sl('ty','Type',[['out','Dépense'],['in','Revenu'],['tr','Transfert']],'out'),fi('a','Montant (XAF)',0,'number'),sl('c','Catégorie',CAT),sl('ac','Compte',acs()),sl('to','Vers le compte (transfert)',[['','—'],...acs()],''),fi('d','Date',today(),'date'),fi('n','Note')];
+const FV={
+ov(){const m=mo(),i=sm(m,'in'),o=sm(m,'out'),ep=S.acc.filter(a=>a.ty=='Épargne').reduce((s,a)=>s+bal(a),0),T=today(),dd=+T.slice(8),dim=new Date(+T.slice(0,4),+T.slice(5,7),0).getDate(),c=cs(m),mx=Math.max(1,...Object.values(c));
+return`<div class="card hero"><p>Solde total</p><div class="big">${f(total())}</div><p>dont épargne : ${f(ep)}</p></div>
+<div class="grid"><div class="card"><span class="mu">Revenus du mois</span><div class="big pos">${f(i)}</div></div><div class="card"><span class="mu">Dépenses du mois</span><div class="big neg">${f(o)}</div></div></div>
+<div class="card row"><span>Solde du mois</span><b class="${i-o<0?'neg':'pos'}">${f(i-o)}</b></div>
+${o?`<div class="card row"><span class="mu">Prévision de dépenses fin de mois</span><b>${f(o/dd*dim)}</b></div>`:''}
+${mh()}<h2>Dépenses par catégorie</h2>${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="mu row"><span>${e(k)}</span><span>${f(v)}</span></div>${bar(pc(v,mx))}`).join('')||'<p class="mu">Aucune dépense ce mois-ci.</p>'}`},
+tx(){return`<button class="btn" data-a="ntx">+ Transaction</button><div style="margin-top:10px">`+(S.tx.slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,40).map(t=>`<div class="card row" data-a="etx" data-i="${t.id}"><div><b>${e(t.c)}</b>${t.n?' · '+e(t.n):''}<div class="mu">${fd(t.d)} · ${e(an(t.ac))}${t.ty=='tr'?' → '+e(an(t.to)):''}</div></div><b class="${t.ty=='in'?'pos':t.ty=='out'?'neg':''}">${t.ty=='in'?'+':t.ty=='out'?'−':''}${f(t.a)}</b></div>`).join('')||'<p class="mu">Aucune transaction.</p>')+'</div>'},
+ac(){return`<button class="btn" data-a="nac">+ Compte</button><div style="margin-top:10px">`+(S.acc.map(a=>`<div class="card row" data-a="eac" data-i="${a.id}"><div><b>${e(a.n)}</b><div class="mu">${a.ty}</div></div><b>${f(bal(a))}</b></div>`).join('')||'<p class="mu">Crée un compte (Espèces, Mobile Money, Banque, Épargne) avant d’enregistrer des transactions.</p>')+'</div>'},
+bd(){const c=cs(mo());return`<button class="btn" data-a="nbd">+ Budget mensuel</button><div style="margin-top:10px">`+(S.bud.map(b=>{const s=c[b.c]||0;return`<div class="card" data-a="ebd" data-i="${b.id}"><div class="row"><b>${e(b.c)}</b><span class="mu">${f(s)} / ${f(b.a)}</span></div>${bar(pc(s,b.a),s>b.a)}</div>`}).join('')||'<p class="mu">Fixe une limite mensuelle par catégorie.</p>')+'</div>'},
+dt(){return`<button class="btn" data-a="ndt">+ Dette</button><div style="margin-top:10px">`+(S.debts.map(d=>`<div class="card"><div class="row" data-a="edt" data-i="${d.id}"><b>${e(d.who)}</b><span class="chip">${d.dir}</span></div>${bar(pc(d.paid,d.a))}<div class="row mu"><span>Reste ${f(d.a-d.paid)}${d.end?' · avant le '+fd(d.end):''}</span><button class="ghost" data-a="pdt" data-i="${d.id}">+ Paiement</button></div></div>`).join('')||'<p class="mu">Aucune dette suivie.</p>')+'</div>'}};
+
+/* Savoir */
+const KT=['Notes','Idées','Formations','Compétences','Exercices','Journal','Bibliothèque'];
+
+/* Vues */
+const V={
+home(){const d=today(),a=todo().filter(t=>!t.ok),dp=dayP(),m=mo(),gs=S.goals.filter(x=>x.p<100),bs=S.books.filter(b=>rd(b)<b.tot),ps=S.projects.filter(p=>pp(p)<100),bst=Math.max(0,...S.routine.map(st));
+return`<h1>Bonjour${S.name?' '+e(S.name):''}</h1><p class="mu">${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</p>
+<div class="card hero" style="margin-top:12px"><div class="row"><b>Ma journée</b><b>${dp.n}/${dp.tot}</b></div>${bar(dp.p)}<p>${dp.tot?dp.p+' % accompli':'Ajoute tâches et habitudes dans Quotidien'}</p></div>
+<div class="grid"><div class="card"><span class="mu">Solde total</span><div class="big">${f(total())}</div></div><div class="card"><span class="mu">Dépenses du mois</span><div class="big neg">${f(sm(m,'out'))}</div></div><div class="card"><span class="mu">Projets actifs</span><div class="big">${ps.length}</div></div><div class="card"><span class="mu">Meilleure série</span><div class="big">${bst} j</div></div></div>
+<h2>Cette semaine</h2>${wk()}<h2>À faire</h2>${a.slice(0,5).map(tkRow).join('')||'<p class="mu">Rien en attente.</p>'}
+<h2>Objectifs en cours</h2>${gs.slice(0,3).map(x=>`<div class="card"><div class="row"><span>${e(x.t)}</span><span class="mu">${x.p} %</span></div>${bar(x.p)}</div>`).join('')}${bs.slice(0,2).map(b=>`<div class="card"><div class="row"><span>📖 ${e(b.t)}</span><span class="mu">${pc(rd(b),b.tot)} %</span></div>${bar(pc(rd(b),b.tot))}</div>`).join('')}${gs.length+bs.length?'':'<p class="mu">Aucun objectif en cours.</p>'}
+<h2>Projets actifs</h2>${ps.slice(0,3).map(p=>`<div class="card" data-a="oph" data-i="${p.id}"><div class="row"><span>${e(p.n)}</span><span class="mu">${pp(p)} %</span></div>${bar(pp(p))}</div>`).join('')||'<p class="mu">Aucun projet actif.</p>'}`},
+day(){const d=today(),a=todo(),fut=S.tasks.filter(t=>t.d>d&&!t.ok).sort((x,y)=>x.d.localeCompare(y.d)),dp=dayP();
+return`<h1>Quotidien</h1><div class="card hero" style="margin-top:10px"><div class="row"><b>Progression du jour</b><b>${dp.p} %</b></div>${bar(dp.p)}<p>${dp.n} terminée(s) · ${dp.tot-dp.n} restante(s)</p></div>
+<div class="row"><h2>Routine et habitudes</h2><button class="ghost" data-a="nr">+</button></div>${S.routine.map(rtRow).join('')||'<p class="mu">Ajoute une habitude : elle revient chaque jour sans la recréer.</p>'}
+<div class="row"><h2>Tâches</h2><button class="ghost" data-a="ntk">+</button></div>${a.map(tkRow).join('')||'<p class="mu">Aucune tâche aujourd’hui.</p>'}
+${fut.length?`<h2>À venir</h2>${fut.slice(0,5).map(tkRow).join('')}`:''}
+<div class="row"><h2>Rappels</h2><button class="ghost" data-a="nrm">+</button></div>${S.rem.map(r=>`<div class="card row" data-a="erm" data-i="${r.id}"><span>⏰ ${e(r.t)}</span><span class="mu">${r.h} · chaque jour</span></div>`).join('')||'<p class="mu">Aucun rappel. Les tâches avec une heure déclenchent aussi une alerte.</p>'}`},
+proj(){if(cur())return pd(cur());return`<div class="row"><h1>Projets</h1><button class="btn" data-a="np">+ Projet</button></div><div style="margin-top:10px">`+(S.projects.map(p=>`<div class="card" data-a="op" data-i="${p.id}"><div class="row"><b>${e(p.n)}</b><span class="chip">${p.pr}</span></div><p class="mu">${p.end?'Échéance '+fd(p.end):'Sans échéance'}</p>${bar(pp(p))}<div class="row mu"><span>${pp(p)} %</span><span>${f(spent(p))} / ${f(p.bud)}</span></div></div>`).join('')||'<p class="mu">Aucun projet. Crée le premier.</p>')+'</div>'},
+goal(){const b=sub.g=='b';return`<div class="row"><h1>Objectifs</h1><button class="btn" data-a="${b?'nb':'ng'}">+ ${b?'Livre':'Objectif'}</button></div>`+tabs('g',[['g','Objectifs'],['b','Lecture']])+(b?S.books.map(bc).join('')||'<p class="mu">Ajoute un livre pour suivre ta lecture.</p>':['Court terme','Moyen terme','Long terme'].map(t=>{const l=S.goals.filter(x=>x.tm==t);return l.length?`<h2>${t}</h2>`+l.map(gc).join(''):''}).join('')||'<p class="mu">Aucun objectif pour l’instant.</p>')},
+fin(){return`<h1>Finances</h1>`+tabs('fin',[['ov','Aperçu'],['tx','Transactions'],['ac','Comptes'],['bd','Budgets'],['dt','Dettes']])+FV[sub.fin||'ov']()},
+know(){const t=sub.k||KT[0],l=S.notes.filter(x=>x.ty==t).sort((a,b)=>b.d.localeCompare(a.d));
+return`<div class="row"><h1>Savoir</h1><button class="btn" data-a="nk">+ Ajouter</button></div>`+tabs('k',KT.map(x=>[x,x]))+(l.map(x=>`<div class="card" data-a="ek" data-i="${x.id}"><div class="row"><b>${e(x.t)}</b>${x.cat?`<span class="chip">${e(x.cat)}</span>`:''}</div>${x.x?`<p class="mu">${e(x.x.slice(0,160))}${x.x.length>160?'…':''}</p>`:''}${['Formations','Compétences'].includes(x.ty)?bar(x.p)+`<span class="mu">${x.p} %</span> · `:''}<span class="mu">${fd(x.d)}</span></div>`).join('')||'<p class="mu">Rien ici pour l’instant.</p>')},
+more(){return`<h1>Plus</h1><div class="card" style="margin-top:10px"><label class="mu" style="margin:0">Ton prénom<input id="nm" value="${e(S.name)}"></label><button class="btn" data-a="nm" style="margin-top:10px">Enregistrer</button></div>
+<h2>Apparence</h2><div class="tabs">${Object.keys(AC).map(k=>`<button class="ghost${S.ac==k?' on':''}" data-a="ac" data-i="${k}">${k}</button>`).join('')}</div>
+<h2>Rappels et notifications</h2><div class="card"><p class="mu">Les rappels (onglet Quotidien) et les tâches avec heure sonnent à l’heure prévue : dans l’application Android, même fermée ; dans un navigateur, seulement quand la page est ouverte.</p><button class="btn" data-a="notif" style="margin-top:8px">Autoriser les notifications</button></div>
+<h2>Sauvegarde et restauration</h2><div class="card"><p class="mu">Tes données restent sur cet appareil. Exporte-les, garde le texte en lieu sûr, et colle-le ici pour restaurer.</p><textarea id="bk" rows="5" placeholder="Sauvegarde…"></textarea><div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" data-a="dl">Télécharger</button><button class="ghost" data-a="exp">Copier</button><button class="ghost" data-a="fl">Ouvrir un fichier</button><button class="ghost" data-a="imp">Restaurer</button></div><input type="file" id="fl" accept=".json,application/json" hidden></div>
+<h2>Zone sensible</h2><button class="ghost neg" data-a="rst">Tout effacer</button><p class="mu" style="margin-top:22px">SYSTÈME 01 · hors ligne · données locales</p>`}};
+
+const T=[['home','🏠','Accueil'],['day','📅','Quotidien'],['proj','📁','Projets'],['goal','🎯','Objectifs'],['fin','💰','Finances'],['know','📚','Savoir'],['more','⚙️','Plus']];
+function go(){$('#nav').innerHTML=T.map(x=>`<button data-a="t" data-i="${x[0]}" class="${x[0]==tab?'on':''}"><b>${x[1]}</b>${x[2]}</button>`).join('');$('#v').innerHTML=V[tab]()}
+
+const A={
+t(i){tab=i;go();scrollTo(0,0)},st(k,v){sub[k]=v;go()},
+tk(i){const t=g(S.tasks,i);t.ok=!t.ok;save();go()},
+ntk(){ed(S.tasks,0,'tâche',[fi('t','Tâche'),fi('d','Date',today(),'date'),fi('h','Heure (facultatif)','','time')],{ok:false})},
+etk(i){ed(S.tasks,g(S.tasks,i),'tâche',[fi('t','Tâche'),fi('d','Date','','date'),fi('h','Heure (facultatif)','','time')])},
+rt(i){const l=S.log[today()]=S.log[today()]||[],k=l.indexOf(i);k<0?l.push(i):l.splice(k,1);save();go()},
+nr(){ed(S.routine,0,'habitude',[fi('t','Habitude ou routine')])},er(i){ed(S.routine,g(S.routine,i),'habitude',[fi('t','Habitude ou routine')])},
+np(){ed(S.projects,0,'projet',pf,{items:[],exp:[],jr:[]})},op(i){sub.p=i;go();scrollTo(0,0)},oph(i){tab='proj';sub.p=i;go();scrollTo(0,0)},bk(){delete sub.p;go()},pe(){ed(S.projects,cur(),'projet',pf)},
+pi(i){const p=cur(),x=g(p.items,i);if(!x.ok){const d=x.dep&&g(p.items,x.dep);if(d&&!d.ok)return toast('Termine d’abord : '+d.t)}
+ x.ok=!x.ok;const ss=p.items.filter(y=>y.par==x.id);if(x.k=='e'&&ss.length)ss.forEach(y=>y.ok=x.ok);
+ if(x.par){const pr=g(p.items,x.par);if(pr)pr.ok=p.items.filter(y=>y.par==pr.id).every(y=>y.ok)}
+ if(x.ok)p.jr.push({d:today(),t:'✔ '+x.t});save();go()},
+ai(k,j){const p=cur();ed(p.items,0,k=='e'?'étape':k=='s'?'sous-tâche':'tâche',[fi('t','Titre'),sl('dep','Dépend de',[['','Aucune'],...p.items.filter(x=>x.k!='s').map(x=>[x.id,x.t])],'')],{k,ok:false,par:j||''})},
+ei(i){const p=cur();ed(p.items,g(p.items,i),'élément',[fi('t','Titre'),sl('dep','Dépend de',[['','Aucune'],...p.items.filter(y=>y.k!='s'&&y.id!=i).map(y=>[y.id,y.t])])])},
+px(i){const p=cur();ed(p.exp,i?g(p.exp,i):0,'dépense',[fi('n','Libellé'),fi('a','Montant (XAF)',0,'number')])},
+pj(){form('Note de journal',[{k:'t',l:'Note',t:'area'}],r=>{if(r.t)cur().jr.push({d:today(),t:r.t})})},
+ng(){ed(S.goals,0,'objectif',gfs,{hist:[]},GP)},eg(i){ed(S.goals,g(S.goals,i),'objectif',gfs,{hist:[]},GP)},
+nb(){ed(S.books,0,'livre',bfs,{ses:[]})},eb(i){ed(S.books,g(S.books,i),'livre',bfs)},
+sb(i){ed(g(S.books,i).ses,0,'session',[fi('n','Pages lues',0,'number'),fi('d','Date',today(),'date')])},
+es(i,j){const b=g(S.books,i);ed(b.ses,g(b.ses,j),'session',[fi('n','Pages lues',0,'number'),fi('d','Date','','date')])},
+ntx(){if(!S.acc.length)return toast('Crée d’abord un compte');ed(S.tx,0,'transaction',txfs(),{},TP)},
+etx(i){ed(S.tx,g(S.tx,i),'transaction',txfs(),{},TP)},
+nac(){ed(S.acc,0,'compte',[fi('n','Nom du compte'),sl('ty','Type',['Espèces','Mobile Money','Banque','Épargne']),fi('init','Solde initial (XAF)',0,'number')])},
+eac(i){ed(S.acc,g(S.acc,i),'compte',[fi('n','Nom du compte'),sl('ty','Type',['Espèces','Mobile Money','Banque','Épargne']),fi('init','Solde initial (XAF)',0,'number')])},
+nbd(){ed(S.bud,0,'budget',[sl('c','Catégorie',CAT),fi('a','Limite mensuelle (XAF)',0,'number')])},ebd(i){ed(S.bud,g(S.bud,i),'budget',[sl('c','Catégorie',CAT),fi('a','Limite mensuelle (XAF)',0,'number')])},
+ndt(){ed(S.debts,0,'dette',DF,{paid:0})},edt(i){ed(S.debts,g(S.debts,i),'dette',DF)},
+pdt(i){const x=g(S.debts,i);form('Paiement : '+e(x.who),[fi('n','Montant payé (XAF)',0,'number')],r=>{x.paid=Math.min(x.a,x.paid+r.n)})},
+nk(){ed(S.notes,0,'entrée',KF(sub.k||KT[0]),{d:today()})},ek(i){const x=g(S.notes,i);ed(S.notes,x,'entrée',KF(x.ty))},
+nm(){S.name=$('#nm').value.trim();save();toast('Enregistré');go()},
+exp(){const t=$('#bk');t.value=JSON.stringify(S);t.select();try{document.execCommand('copy');toast('Sauvegarde copiée')}catch(x){toast('Copie le texte sélectionné')}},
+imp(){try{const d=JSON.parse($('#bk').value);if(!d||typeof d!='object'||Array.isArray(d))throw 0;S=Object.assign(D(),d);save();go();toast('Données restaurées')}catch(x){toast('Sauvegarde invalide')}},
+rst(){form('Tout effacer ? Action définitive.',[],()=>{S=D()})}};
+const GP=(x,pv)=>{x.p=Math.max(0,Math.min(100,x.p));if(!pv||pv.p!=x.p)x.hist.push({d:today(),p:x.p})},
+TP=(x,pv)=>{if(x.ty!='tr')x.to='';if(x.a<=0||(x.ty=='tr'&&(!x.to||x.to==x.ac))){pv?Object.assign(x,pv):S.tx.splice(S.tx.indexOf(x),1);toast('Montant ou compte invalide')}},
+DF=[fi('who','Personne'),sl('dir','Sens',['Je dois','On me doit']),fi('a','Montant total (XAF)',0,'number'),fi('end','Échéance','','date')],
+KF=t=>[fi('t','Titre'),sl('ty','Type',KT,t),{k:'x',l:'Contenu',t:'area'},fi('cat','Catégorie'),fi('p','Progression % (formations, compétences)',0,'number')];
+const AC={Violet:['#8b5cf6','#3b82f6'],Bleu:['#3b82f6','#06b6d4'],Indigo:['#6366f1','#a855f7']},RF=[fi('t','Message du rappel'),fi('h','Heure','08:00','time')],
+ap=()=>{const c=AC[S.ac]||AC.Violet,s=document.documentElement.style;s.setProperty('--v',c[0]);s.setProperty('--g',`linear-gradient(135deg,${c[0]},${c[1]})`)},
+wk=()=>{const a=[];let hb=0;for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5),k=iso(d),h=S.routine.filter(r=>(S.log[k]||[]).includes(r.id)).length;hb+=h;a.push([d.toLocaleDateString('fr-FR',{weekday:'narrow'}),S.tasks.filter(t=>t.d==k&&t.ok).length+h])}
+ const mx=Math.max(1,...a.map(x=>x[1]));return`<div class="card"><div style="display:flex;align-items:flex-end;gap:6px;height:64px">${a.map(x=>`<div style="flex:1;text-align:center"><div style="height:${Math.max(3,x[1]/mx*44)}px;background:var(--g);border-radius:6px"></div><span class="mu">${x[0]}</span></div>`).join('')}</div><p class="mu">${a.reduce((s,x)=>s+x[1],0)} action(s) terminée(s) sur 7 jours${S.routine.length?' · habitudes tenues à '+pc(hb,S.routine.length*7)+' %':''}</p></div>`},
+mh=()=>{const a=[],n=new Date();for(let i=5;i>=0;i--){const d=new Date(n.getFullYear(),n.getMonth()-i,1),t=S.tx.filter(x=>x.d.startsWith(iso(d).slice(0,7)));a.push([d.toLocaleDateString('fr-FR',{month:'short'}),sm(t,'in'),sm(t,'out')])}
+ const mx=Math.max(1,...a.flatMap(x=>[x[1],x[2]]));return`<h2>6 derniers mois</h2><div class="card">${a.map(x=>`<div class="mu row"><span style="width:40px">${x[0]}</span><div style="flex:1"><div class="bar" style="margin:2px 0"><i style="width:${pc(x[1],mx)}%;background:var(--ok)"></i></div><div class="bar" style="margin:2px 0"><i style="width:${pc(x[2],mx)}%;background:var(--ko)"></i></div></div></div>`).join('')}<p class="mu">Vert : revenus · Rouge : dépenses</p></div>`},
+fire=m=>{toast('⏰ '+m,9000);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(x){}try{new Notification('SYSTÈME 01',{body:m})}catch(x){}},
+tick=()=>{const n=new Date(),d=today(),now=n.getHours()*60+n.getMinutes();[...S.rem.map(r=>[r.id,r.h,r.t]),...S.tasks.filter(t=>t.d==d&&t.h&&!t.ok).map(t=>[t.id,t.h,t.t])].forEach(([i,h,t])=>{const df=now-(+h.slice(0,2)*60+ +h.slice(3,5)),k=i+d;if(df>=0&&df<=15&&!S.fired[k]){S.fired[k]=1;save();fire(t)}});for(const k in S.fired)if(!k.endsWith(d))delete S.fired[k]};
+Object.assign(A,{nrm(){ed(S.rem,0,'rappel',RF)},erm(i){ed(S.rem,g(S.rem,i),'rappel',RF)},ac(i){S.ac=i;save();ap();go()},
+notif(){try{Notification.requestPermission().then(r=>toast(r=='granted'?'Notifications activées':'Notifications refusées'))}catch(x){toast('Indisponible ici : les alertes restent à l’écran')}},
+async dl(){try{const d=await claude.use('downloads');if(!d)return toast('Téléchargement indisponible : utilise Copier');await d.save({filename:'systeme01-'+today()+'.json',data:JSON.stringify(S)})}catch(x){if(!x||x.code!='declined')toast('Enregistrement impossible : utilise Copier')}},
+fl(){$('#fl').click()}});
+document.onchange=ev=>{if(ev.target.id=='fl'){const f=ev.target.files[0];if(f)f.text().then(t=>{$('#bk').value=t;A.imp()})}};
+const NAT=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()),PL=n=>NAT?Capacitor.registerPlugin(n):null,PR=PL('Preferences'),LN=PL('LocalNotifications'),SH=PL('Share'),nid=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7)&0x7fffffff;
+let nw;
+function nsave(){if(!NAT)return;try{PR.set({key:K,value:JSON.stringify(S)})}catch(x){}clearTimeout(nw);nw=setTimeout(nsync,1500)}
+async function nsync(){try{const p=await LN.checkPermissions();if(p.display!='granted')return;const q=await LN.getPending();if(q.notifications.length)await LN.cancel({notifications:q.notifications});const n=[],now=Date.now();
+ S.rem.forEach(r=>{const[h,m]=r.h.split(':').map(Number);n.push({id:nid('r'+r.id),title:'SYSTÈME 01',body:r.t,schedule:{on:{hour:h,minute:m},allowWhileIdle:true}})});
+ S.tasks.forEach(t=>{if(t.ok||!t.h)return;const at=new Date(t.d+'T'+t.h);if(at>now)n.push({id:nid('t'+t.id),title:'SYSTÈME 01',body:t.t,schedule:{at,allowWhileIdle:true}})});
+ if(n.length)await LN.schedule({notifications:n})}catch(x){}}
+{const on=A.notif,od=A.dl;Object.assign(A,{async notif(){if(!NAT)return on();try{const r=await LN.requestPermissions();toast(r.display=='granted'?'Notifications activées':'Notifications refusées');nsync()}catch(x){toast('Notifications indisponibles')}},async dl(){if(!NAT)return od();try{await SH.share({title:'Sauvegarde SYSTÈME 01',text:JSON.stringify(S),dialogTitle:'Enregistrer la sauvegarde'})}catch(x){}}})}
+if(NAT){PR.get({key:K}).then(v=>{if(v.value&&!localStorage.getItem(K)){S=Object.assign(D(),JSON.parse(v.value));go()}}).catch(()=>{});nsync()}
+ap();setInterval(tick,20000);document.addEventListener('visibilitychange',tick);tick();
+document.onclick=ev=>{const b=ev.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.i,b.dataset.j)};
+go();
+</script></body></html>
