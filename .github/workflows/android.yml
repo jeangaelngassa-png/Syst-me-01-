@@ -3,7 +3,7 @@ name: Build SYSTÈME 01 APK
 
 on:
 push:
-branches: [principal]
+branches: [main]
 workflow_dispatch:
 
 jobs:
